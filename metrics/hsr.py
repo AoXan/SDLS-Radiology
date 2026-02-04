@@ -2,9 +2,27 @@ import pandas as pd
 import string
 
 TRIGGERS = {
-    'Stability': ['stable', 'unchanged', 'no change', 'no interval change'], 
-    'Comparison': ['prior', 'previous', 'compared with'],
-    'Negative_Absence': ['no prior', 'no comparison', 'no previous'] 
+    'Stability': [
+    'stable', 'unchanged', 'no change', 'no significant change', 'no interval change',
+    'persistent', 'remains', 'similar', 'similarly', 'has not changed', 'is stable',
+    'grossly stable', 'essentially unchanged', 'chronic', 'long-standing'
+    ], 
+    'Comparison': [
+    'prior', 'previous', 'compared with', 'compared to', 'since the previous',
+    'again seen', 'on the prior', 'from the prior'
+    ],
+    "Progression": [
+    'worsened', 'increased', 'larger', 'more', 'progression', 'development of',
+    'now demonstrates', 'interval development'
+    ],
+    'Improvement': [
+    'improved', 'decreased', 'smaller', 'less', 'resolved', 'resolution',
+    'less conspicuous', 'clearing'
+    ],
+
+    'Negative_Absence': [
+    'no prior', 'no comparison', 'no previous', 'without comparison'
+    ] 
 }
 FLAT = [w for cat in TRIGGERS.values() for w in cat]
 FLAT.sort(key=lambda x: len(x.split()), reverse=True)

@@ -1,195 +1,70 @@
-## 🚀 Quick Start
+# SDLS-Radiology: Semantically Decoupled Latent Steering
 
-### 1. Prerequisites
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-**Bash**
+**Official Reference Implementation for "Suppressing Prior-Comparison Hallucinations in Radiology Report Generation via Semantically Decoupled Latent Steering" (IEEE TPAMI).**
 
-```
-pip install torch transformers pandas numpy scikit-learn tqdm pillow
-# Optional for full metrics:
-pip install radgraph bert_score spacy
-```
+> **Note**: This repository serves as an illustrative implementation to demonstrate the algorithmic logic and mathematical fidelity of the SDLS framework. It is structured to facilitate code audit and reproducibility of the paper's methodology.
 
-### 2. Pipeline Reproduction
+## 📖 Abstract
 
-#### Stage I: Data Preparation
+Automated radiology report generation often suffers from **Prior-Comparison Hallucination**, where models generate historical findings unsupported by current imaging data. We propose **Semantically Decoupled Latent Steering (SDLS)**, a training-free inference-time intervention framework. By constructing an orthogonal steering vector derived from contrastive report pairs, SDLS precisely neutralizes historical bias without compromising clinical accuracy.
 
-Mine contrastive pairs (reports with and without history) and link images.
+## 📂 System Architecture
 
-**Bash**
-
-```
-python data/mine_contrastive_pairs.py --clean_train_csv path/to/clean.csv --original_json path/to/mimic.json
-python data/link_images.py --input_csv data/contrastive_pairs.csv --annotation_json path/to/mimic.json
-```
-
-#### Stage II: Vector Construction
-
-**Step A: Extract Multi-layer Contextual Vectors (MCV)**
-
-**Bash**
-
-```
-python core/extract_states.py --input_csv data/multimodal_pairs.csv --image_root /path/to/mimic-cxr
-```
-
-**Step B: Decompose & Compute Steering Vector**
-
-* **For SDIV (Proposed):**
-  **Bash**
-
-  ```
-  python core/decomposition.py --input_pkl data/hidden_states.pkl --method qr --output_path core/sdiv_vector.npy
-  ```
-* **For Global ICV (Baseline):**
-  **Bash**
-
-  ```
-  python core/decomposition.py --input_pkl data/hidden_states.pkl --method pca
-  ```
-
-#### Stage III: Inference (Steering)
-
-Apply the vector using the **SteerFair** strategy on Attention layers (Best performance in Table V).
-
-**Bash**
-
-```
-python experiments/inference.py \
-    --backend biomedgpt \
-    --model_path /path/to/biomedgpt \
-    --image_root /path/to/images \
-    --input_csv data/multimodal_pairs.csv \
-    --use_sdiv --icv_path core/sdiv_vector.npy \
-    --strategy SteerFair --submodule attention \
-    --strength -2.0
-```
-
-### 3. Evaluation
-
-Calculate Hallucination Span Rate (HSR) and Clinical Metrics.
-
-**Bash**
-
-```
-# Calculate HSR (Token-level)
-python metrics/hsr.py --input_csv results/results.csv --output_csv results/metrics_hsr.csv
-
-# Calculate Clinical Metrics (RadGraph, BERTScore, Hallucination Sentence Count)
-python metrics/clinical.py --input_csv results/metrics_hsr.csv --output_csv results/final_metrics.csv
-```
-
-## 📊 Citation
-
-If you use this code, please cite our TPAMI paper:
-
-**Code snippet**
-
-```
-@article{li2026sdls,
-  title={Suppressing Prior-Comparison Hallucinations in Radiology Report Generation via Semantically Decoupled Latent Steering},
-  author={Li, Ao and others},
-  journal={IEEE Transactions on Pattern Analysis and Machine Intelligence},
-  year={2026}
-}
-```
-
-```
-
----
-
-### 第二部分：如何将本地文件夹完整替换 GitHub 仓库
-
-这是“核弹级”操作。我们将不理会 GitHub 上原有的任何历史记录，直接把本地这个完美的版本强制推送到远端。
-
-**前提条件**：
-1.  你已经在 GitHub 上有一个仓库（假设地址是 `https://github.com/YourName/SDLS-Radiology.git`）。
-2.  你的本地文件夹包含了所有重构后的代码，并且已经加上了上面的 `README.md`。
-
-#### 步骤 1：创建 .gitignore (非常重要！)
-防止把巨大的模型文件 (`.bin`, `.pth`) 或数据文件 (`.pkl`, `.npy`) 上传上去。
-在项目根目录下创建一个名为 `.gitignore` 的文件，写入以下内容：
+The codebase is organized into four logical stages, strictly aligning with the mathematical definitions in Section III of the paper.
 
 ```text
-# .gitignore
-__pycache__/
-*.pyc
-*.pkl
-*.npy
-*.csv
-.DS_Store
-/models/
-/results/
-/data/MIMIC-CXR/
+SDLS-Radiology/
+├── data/                       # Stage I: Contrastive Context Mining
+│   ├── mine_contrastive_pairs.py  # Mining (r_hist, r_curr) pairs
+│   ├── link_images.py             # Multimodal data linking
+│   └── semantics.py               # Semantic decomposition (LLM-based)
+├── core/                       # Stage II & III: The SDLS Algorithm
+│   ├── extract_states.py          # MCV Extraction (Eq. 1)
+│   ├── decomposition.py           # Orthogonal Decomposition (Eq. 5)
+│   └── steering.py                # Norm-Preserving Steering (Eq. 6)
+├── experiments/                # Inference Implementation
+│   └── inference.py               # Online Phase (Algorithm 1)
+├── metrics/                    # Evaluation Framework
+│   ├── hsr.py                     # History Span Rate (Eq. 7)
+│   ├── classifier.py              # Hallucination Probability (FilBERT)
+│   ├── clinical.py                # RadGraph & Clinical Efficacy
+│   └── decoupling.py              # Metric Decoupling Analysis
+└── utils/                      # Backbone Utilities
+    └── model_loader.py            # Support for BiomedGPT, IAMJB, LLaVA
 ```
 
-#### 步骤 2：初始化 Git 并“重新做人”
+## 🧠 Methodological Implementation
 
-打开终端（Terminal），进入你的项目文件夹，执行以下命令：
+### Stage I: Data Construction (Section III-A)
 
-1. **删除旧的 git 关联** (如果本地以前初始化过 git，先删掉，保证清白)：
-   **Bash**
+The foundation of SDLS is the construction of a specific difference vector $\Delta v$.
 
-   ```
-   rm -rf .git
-   ```
+* **`data/mine_contrastive_pairs.py`**: Implements the regex logic to parse "Impression" sections and identify pairs where historical references exist in the original report ($r_{orig}$) but are removed in the current report ($r_{curr}$).
+* **`data/semantics.py`**: Uses LLMs to decompose reports into atomic findings, categorizing them into *Comparison*, *Stability*, or *Progression* (Table I) to construct **Specific-ICVs**.
 
-   *(注意：Windows 用户如果是 PowerShell，用 `rd /s /q .git`，或者直接手动删除隐藏的 .git 文件夹)*
-2. **重新初始化**：
-   **Bash**
+### Stage II: Orthogonal Decomposition (Section III-B)
 
-   ```
-   git init
-   ```
-3. **添加所有文件**：
-   **Bash**
+This stage computes the steering vector $v_{SDIV}$.
 
-   ```
-   git add .
-   ```
-4. **提交代码**：
-   **Bash**
+* **`core/extract_states.py`**: Implements **Equation 1**, extracting the Multi-layer Contextual Vector (MCV) $h$ from all decoder layers.
+* **`core/decomposition.py`**: Implements **Equation 5**. It stacks the difference vectors ($\Delta v$) and applies **QR Decomposition**. The mean of the orthogonal basis $Q$ is computed to derive the **SDIV (Semantically Decoupled Intervention Vector)**.
+* *Support for Baseline*: Also implements PCA for Global ICV (Eq. 3).
 
-   ```
-   git commit -m "Refactor: Complete architectural overhaul aligning with TPAMI paper"
-   ```
-5. **切换分支名** (现在 GitHub 默认是 main)：
-   **Bash**
+### Stage III: Latent Steering (Section III-C)
 
-   ```
-   git branch -M main
-   ```
+This stage injects the vector during inference.
 
-#### 步骤 3：强制推送到远程 (覆盖一切)
+* **`core/steering.py`**: Encapsulates the `SDLSEngine`. It implements **Equation 6 (Norm-Preserving Addition)**:
 
-1. **关联远程仓库** (替换为你自己的 GitHub 地址)：
-   **Bash**
+$$
+h' = \|h\| \cdot \text{norm}(h/\|h\| + \lambda \cdot v_{SDIV})
+$$
 
-   ```
-   git remote add origin https://github.com/YourName/SDLS-Radiology.git
-   ```
-2. **强制推送** (The Nuclear Option)：
-   **Bash**
+It supports the **SteerFair** strategy by hooking into the Attention Output submodule, as validated in Table V.
 
-   ```
-   git push -u origin main --force
-   ```
+### Evaluation Metrics (Section III-D)
 
-**执行完这一步后，你的 GitHub 仓库将与你本地的完美重构版本一模一样。旧的杂乱代码和提交历史将全部消失。**
-
----
-
-### 🎉 恭喜！
-
-你现在拥有了一个：
-
-1. **逻辑严密**（通过资深审计）。
-2. **架构清晰**（Data/Core/Exp/Metrics 分离）。
-3. **文档齐全**（包含 README）。
-4. **线上同步**（GitHub 已更新）的开源级项目。
-
-如果有任何特定的模块运行报错，或需要补充其他辅助脚本，随时告诉我！
-
-```
-
-```
+* **`metrics/hsr.py`**: Implements **History Span Rate (HSR)**, a token-level metric defined in Eq. 7 to quantify the density of hallucinated prior comparisons.
+* **`metrics/decoupling.py`**: Implements the linear regression analysis (Table IV) to demonstrate that hallucination suppression is independent of general text similarity metrics like BERTScore.

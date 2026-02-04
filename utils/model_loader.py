@@ -8,8 +8,6 @@ def load_model(backend, model_path, device):
         tokenizer = AutoTokenizer.from_pretrained(model_path)
         processor = AutoImageProcessor.from_pretrained(model_path)
     elif backend == 'biomedgpt':
-        # Assumes OFA structure is handled by transformers or custom code
-        # Standard generic loading for Encoder-Decoder
         model = VisionEncoderDecoderModel.from_pretrained(model_path).to(device).eval()
         tokenizer = AutoTokenizer.from_pretrained(model_path)
         processor = AutoImageProcessor.from_pretrained(model_path)
