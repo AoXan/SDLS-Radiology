@@ -1,0 +1,44 @@
+# --- Core Deep Learning Framework ---
+torch==2.5.1
+torchvision==0.20.1
+torchaudio==2.5.1
+accelerate==1.10.1
+bitsandbytes==0.48.2
+peft==0.17.1
+
+# --- Hugging Face Ecosystem ---
+transformers==4.57.5
+tokenizers==0.22.2
+huggingface-hub==0.36.0
+safetensors==0.7.0
+
+# --- Natural Language Processing & Metrics ---
+spacy==3.7.5
+nltk==3.9.2
+bert-score==0.3.13
+rouge-score==0.1.2
+radgraph==0.1.18
+sentencepiece==0.2.1
+
+# --- Data Science & Scientific Computing ---
+numpy==1.26.4
+pandas==2.3.3
+scikit-learn==1.6.1
+scipy==1.13.1
+matplotlib==3.9.4
+networkx==3.2.1
+
+# --- Utilities & Infrastructure ---
+tqdm==4.67.1
+pillow==11.3.0
+pyyaml==6.0.3
+requests==2.32.5
+rich==14.2.0
+psutil==7.2.1
+joblib==1.5.3
+filelock==3.19.1
+absl-py==2.3.1
+protobuf==6.33.4
+pydantic==2.12.5
+pytest==8.4.2
+fsspec==2025.10.0
