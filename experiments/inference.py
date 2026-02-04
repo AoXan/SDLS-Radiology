@@ -48,7 +48,6 @@ def main(args):
                     out = model.generate(**inputs, max_new_tokens=100)
                     text = processor.decode(out[0], skip_special_tokens=True)
                 else:
-                    # BiomedGPT parameter fix
                     img_arg = {'patch_images': inputs['pixel_values']} if args.backend == 'biomedgpt' else {'pixel_values': inputs['pixel_values']}
                     out = model.generate(**img_arg, max_length=120, num_beams=4, early_stopping=True)
                     text = tokenizer.decode(out[0], skip_special_tokens=True)
@@ -75,7 +74,7 @@ if __name__ == "__main__":
     parser.add_argument("--use_sdiv", action="store_true")
     parser.add_argument("--icv_path")
     parser.add_argument("--strength", type=float, default=-2.0)
-    parser.add_argument("--strategy", default="SteerFair_Attention") # e.g. SteerFair_Attention
+    parser.add_argument("--strategy", default="SteerFair_Attention") 
     parser.add_argument("--layer_start", type=int, default=2)
     parser.add_argument("--layer_end", type=int, default=10)
     parser.add_argument("--sample_size", type=int)
