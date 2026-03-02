@@ -2,6 +2,8 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
+[![arXiv](https://img.shields.io/badge/arXiv-2602.23676-b31b1b.svg)](https://arxiv.org/abs/2602.23676)
+
 **Official Reference Implementation for "Suppressing Prior-Comparison Hallucinations in Radiology Report Generation via Semantically Decoupled Latent Steering" (IEEE TPAMI).**
 
 > **Note**: This repository serves as an illustrative implementation to demonstrate the algorithmic logic and mathematical fidelity of the SDLS framework. It is structured to facilitate code audit and reproducibility of the paper's methodology.
